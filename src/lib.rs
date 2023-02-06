@@ -1,10 +1,10 @@
 /// # CHIP-8 CPU implementation
 ///
 pub struct CPU {
-    pub registers: [u8; 16],
+    pub registers: [u8; 0x10],
     pub memory: [u8; 0x1000],
     position_in_memory: usize,
-    stack: [u16; 16],
+    stack: [u16; 0x10],
     stack_pointer: usize,
 }
 
@@ -89,10 +89,6 @@ impl CPU {
 
     pub fn sub_xy(&mut self, x: u8, y: u8) {
         self.perform_op(x, y, u8::overflowing_sub);
-    }
-
-    pub fn mul_xy(&mut self, x: u8, y: u8) {
-        self.perform_op(x, y, u8::overflowing_mul);
     }
 
     fn perform_op<F>(&mut self, x: u8, y: u8, f: F)
