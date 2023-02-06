@@ -64,6 +64,18 @@ impl CPU {
                 (0x6, _, _, _) => self.registers[x as usize] = kk,
                 (0x7, _, _, _) => self.registers[x as usize] += kk,
                 (0x8, _, _, 0) => self.registers[x as usize] = self.registers[y as usize],
+                (0x8, _, _, 1) => {
+                    self.registers[x as usize] =
+                        self.registers[x as usize] | self.registers[y as usize];
+                }
+                (0x8, _, _, 2) => {
+                    self.registers[x as usize] =
+                        self.registers[x as usize] & self.registers[y as usize];
+                }
+                (0x8, _, _, 3) => {
+                    self.registers[x as usize] =
+                        self.registers[x as usize] ^ self.registers[y as usize];
+                }
                 (0x8, _, _, 0x4) => self.add_xy(x, y),
                 (0x8, _, _, 0x5) => self.sub_xy(x, y),
                 _ => todo!("opcode {:04x}", opcode),
