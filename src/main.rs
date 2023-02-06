@@ -15,7 +15,7 @@ fn main() {
 
     let mem = &mut cpu.memory;
 
-    /// call on mem location 0x100 twice and then exit program
+    // call on mem location 0x100 twice and then exit program
     mem[0x000] = 0x21;
     mem[0x001] = 0x00;
 
@@ -26,7 +26,7 @@ fn main() {
     mem[0x004] = 0x00;
     mem[0x005] = 0x00;
 
-    /// two adds and then return to previous location in the stack
+    // two adds and then return to previous location in the stack
     // add register 1 to register 0 and store result in 0
     mem[0x100] = 0x80;
     mem[0x101] = 0x14;

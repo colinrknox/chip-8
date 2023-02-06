@@ -35,16 +35,28 @@ impl CPU {
                 (0x2, _, _, _) => self.call(nnn),
                 (0, 0, 0xE, 0xE) => self.ret(),
                 (0x8, _, _, 0x4) => self.add_xy(x, y),
+                (0x8, _, _, 0x5) => self.mul_xy(x, y),
                 _ => todo!("opcode {:04x}", opcode),
             }
         }
     }
 
     pub fn add_xy(&mut self, x: u8, y: u8) {
+        self.perform_op(x, y, u8::overflowing_add);
+    }
+
+    pub fn mul_xy(&mut self, x: u8, y: u8) {
+        self.perform_op(x, y, u8::overflowing_mul);
+    }
+
+    fn perform_op<F>(&mut self, x: u8, y: u8, f: F)
+    where
+        F: Fn(u8, u8) -> (u8, bool),
+    {
         let arg1 = self.registers[x as usize];
         let arg2 = self.registers[y as usize];
 
-        let (val, overflow) = arg1.overflowing_add(arg2);
+        let (val, overflow) = f(arg1, arg2);
         self.registers[x as usize] = val;
 
         if overflow {
