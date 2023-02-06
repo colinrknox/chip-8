@@ -1,13 +1,24 @@
+/// # CHIP-8 CPU implementation
+///
 pub struct CPU {
     pub registers: [u8; 16],
     pub memory: [u8; 0x1000],
-    pub position_in_memory: usize,
-    pub stack: [u16; 16],
-    pub stack_pointer: usize,
+    position_in_memory: usize,
+    stack: [u16; 16],
+    stack_pointer: usize,
 }
 
 impl CPU {
-    pub fn read_opcode(&self) -> u16 {
+    pub fn new() -> Self {
+        Self {
+            registers: [0; 0x10],
+            memory: [0; 0x1000],
+            position_in_memory: 0,
+            stack: [0; 16],
+            stack_pointer: 0,
+        }
+    }
+    fn read_opcode(&self) -> u16 {
         let p = self.position_in_memory;
         let op_byte1 = self.memory[p] as u16;
         let op_byte2 = self.memory[p + 1] as u16;
@@ -26,16 +37,35 @@ impl CPU {
             let d = (opcode & 0x000F) as u8;
 
             let nnn = opcode & 0x0FFF;
-            // let kk = opcode & 0x00FF as u8;
+            let kk = (opcode & 0x00FF) as u8;
 
             match (c, x, y, d) {
                 (0, 0, 0, 0) => {
                     return;
                 }
-                (0x2, _, _, _) => self.call(nnn),
                 (0, 0, 0xE, 0xE) => self.ret(),
+                (0x1, _, _, _) => self.jmp(nnn),
+                (0x2, _, _, _) => self.call(nnn),
+                (0x3, _, _, _) => {
+                    if self.registers[x as usize] == kk {
+                        self.position_in_memory += 2;
+                    }
+                }
+                (0x4, _, _, _) => {
+                    if self.registers[x as usize] != kk {
+                        self.position_in_memory += 2;
+                    }
+                }
+                (0x5, _, _, 0) => {
+                    if self.registers[x as usize] == self.registers[y as usize] {
+                        self.position_in_memory += 2;
+                    }
+                }
+                (0x6, _, _, _) => self.registers[x as usize] = kk,
+                (0x7, _, _, _) => self.registers[x as usize] += kk,
+                (0x8, _, _, 0) => self.registers[x as usize] = self.registers[y as usize],
                 (0x8, _, _, 0x4) => self.add_xy(x, y),
-                (0x8, _, _, 0x5) => self.mul_xy(x, y),
+                (0x8, _, _, 0x5) => self.sub_xy(x, y),
                 _ => todo!("opcode {:04x}", opcode),
             }
         }
@@ -43,6 +73,10 @@ impl CPU {
 
     pub fn add_xy(&mut self, x: u8, y: u8) {
         self.perform_op(x, y, u8::overflowing_add);
+    }
+
+    pub fn sub_xy(&mut self, x: u8, y: u8) {
+        self.perform_op(x, y, u8::overflowing_sub);
     }
 
     pub fn mul_xy(&mut self, x: u8, y: u8) {
@@ -64,6 +98,10 @@ impl CPU {
         } else {
             self.registers[0xF] = 0;
         }
+    }
+
+    pub fn jmp(&mut self, addr: u16) {
+        self.position_in_memory = addr as usize;
     }
 
     pub fn call(&mut self, addr: u16) {

@@ -2,13 +2,7 @@ use chip_8;
 use chip_8::CPU;
 
 fn main() {
-    let mut cpu = CPU {
-        registers: [0; 0x10],
-        memory: [0; 0x1000],
-        position_in_memory: 0,
-        stack: [0; 16],
-        stack_pointer: 0,
-    };
+    let mut cpu = CPU::new();
 
     cpu.registers[0] = 5;
     cpu.registers[1] = 10;
